@@ -1,33 +1,47 @@
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
 #include "SerialPort.h"
+#include <iostream>
+#include <string>
 
 using namespace std;
 
-char output[MAX_DATA_LENGTH];
+char* portName = "\\\\.\\COM3";
+char receivedString[MAX_DATA_LENGTH + 1];
 
-char *port_name = "\\\\.\\COM20";
+SerialPort *arduino;
 
-char incomingData[MAX_DATA_LENGTH];
-
-int main()
+int main(void)
 {
-  SerialPort arduino(port_name);
-  if (arduino.isConnected()) cout << "Connection Established" << endl;
-  else cout << "ERROR, check port name\n";
+	arduino = new SerialPort(portName);
+	cout << "is connected: " << arduino->isConnected() << std::endl;
+	string input_string;
+	int readResult = 0;
+	bool sendResult = FALSE;
 
-  while (arduino.isConnected()){
-    cout << "Write something: \n";
-    std::string input_string;
-    getline(cin, input_string);
-    char *c_string = new char[input_string.size() + 1];
-    std::copy(input_string.begin(), input_string.end(), c_string);
-    c_string[input_string.size()] = '\n';
-    arduino.writeSerialPort(c_string, MAX_DATA_LENGTH);
-    arduino.readSerialPort(output, MAX_DATA_LENGTH);
-    puts(output);
-    delete[] c_string;
-  }
+	while (arduino->isConnected()) {
+		
+		cout << "Write something: \n";
+		getline(cin, input_string);
+		char *c_string = new char[input_string.size() + 1];
+		std::copy(input_string.begin(), input_string.end(), c_string);
+		c_string[input_string.size()] = '\n';
+
+		sendResult = arduino->writeSerialPort(c_string, MAX_DATA_LENGTH);
+
+		if (sendResult) {
+			readResult = arduino->readSerialPort(receivedString, MAX_DATA_LENGTH);
+
+			if (readResult != 0) {
+				receivedString[readResult] = 0;
+				cout << receivedString;
+			}
+			else {
+				cout << "Error: No data Received\n";
+			}
+		}
+		else {
+			cout << "Error: No data sent\n";
+		}
+
+		delete[] c_string;
+	}
 }
