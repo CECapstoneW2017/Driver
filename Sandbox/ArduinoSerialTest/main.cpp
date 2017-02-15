@@ -22,10 +22,12 @@ int main(void)
 		cout << "Write something: \n";
 		getline(cin, input_string);
 		char *c_string = new char[input_string.size() + 1];
+		int c_string_sz = input_string.size() + 1;
+
 		std::copy(input_string.begin(), input_string.end(), c_string);
 		c_string[input_string.size()] = '\n';
-
-		sendResult = arduino->writeSerialPort(c_string, MAX_DATA_LENGTH);
+		
+		sendResult = arduino->writeSerialPort(c_string, c_string_sz); //CHANGED THE 2nd INPUT
 
 		if (sendResult) {
 			readResult = arduino->readSerialPort(receivedString, MAX_DATA_LENGTH);
