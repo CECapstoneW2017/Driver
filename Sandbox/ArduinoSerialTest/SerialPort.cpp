@@ -6,6 +6,7 @@
 * @version 1.1 2/15/2017
 */
 #include "SerialPort.h"
+#include <iostream> //for debugging only
 
 /**
 * Returns active serial port connection
@@ -25,13 +26,10 @@ SerialPort::SerialPort(char *portName)
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
 	if (this->handler == INVALID_HANDLE_VALUE) {
-		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+		if (GetLastError() == ERROR_FILE_NOT_FOUND) {	// if file not found error
 			printf("ERROR: Handle was not attached. Reason: %s not available\n", portName);
 		}
-		else
-		{
-			printf("ERROR!!!");
-		}
+		else { printf("ERROR!!!"); }	// unknown error
 	}
 	else {
 		DCB dcbSerialParameters = { 0 };
@@ -40,14 +38,13 @@ SerialPort::SerialPort(char *portName)
 			printf("Failed to get current serial parameters");
 		}
 		else {
-			dcbSerialParameters.BaudRate = CBR_9600;
+			dcbSerialParameters.BaudRate = CBR_256000;
 			dcbSerialParameters.ByteSize = 8;
 			dcbSerialParameters.StopBits = ONESTOPBIT;
-			dcbSerialParameters.Parity = NOPARITY;
+			dcbSerialParameters.Parity = EVENPARITY;
 			dcbSerialParameters.fDtrControl = DTR_CONTROL_ENABLE;
 
-			if (!SetCommState(handler, &dcbSerialParameters))
-			{
+			if (!SetCommState(handler, &dcbSerialParameters)) {
 				printf("ALERT: could not set Serial port parameters\n");
 			}
 			else {
@@ -80,10 +77,34 @@ SerialPort::~SerialPort()
 * @param buf_size Size of serial port data buffer
 * @returns Data recieved on serial port
 */
+/*
 int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
 {
 	DWORD bytesRead;
-	unsigned int toRead;
+	unsigned int toRead = buf_size;
+
+	ClearCommError(this->handler, &this->errors, &this->status);
+
+	if (this->status.cbInQue > 0) {
+		if (this->status.cbInQue > buf_size) {
+			toRead = buf_size;
+		}
+		else {
+			toRead = this->status.cbInQue;
+		}
+	}
+
+	if (ReadFile(this->handler, buffer, toRead, &bytesRead, NULL)) {
+		return bytesRead;
+	}
+
+	return 0;
+}
+*/
+int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
+{
+	DWORD bytesRead;
+	unsigned int toRead = buf_size;
 
 	ClearCommError(this->handler, &this->errors, &this->status);
 
@@ -116,12 +137,9 @@ bool SerialPort::writeSerialPort(char *buffer, unsigned int buf_size)
 
 	if (!WriteFile(this->handler, (void*)buffer, buf_size, &bytesSend, 0)) {
 		ClearCommError(this->handler, &this->errors, &this->status);
-		
 		return false;
 	}
-	else {
-		return true;
-	}
+	else { return true;	}
 }
 
 /**
@@ -130,7 +148,6 @@ bool SerialPort::writeSerialPort(char *buffer, unsigned int buf_size)
 * @param NA
 * @returns Status of serial port connection
 */
-bool SerialPort::isConnected()
-{
+bool SerialPort::isConnected() {
 	return this->connected;
 }
