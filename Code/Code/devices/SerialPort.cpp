@@ -78,35 +78,21 @@ SerialPort::~SerialPort()
 }
 
 /**
+* Checks status of serial port connection
+*
+* @param NA
+* @returns Status of serial port connection
+*/
+bool SerialPort::isConnected() {
+	return this->connected;
+}
+
+/**
 * Reads serial port data
 *
 * @param *buffer Serial port data buffer
 * @param buf_size Size of serial port data buffer
 * @returns Data recieved on serial port
-*/
-/*
-int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
-{
-	DWORD bytesRead;
-	unsigned int toRead = buf_size;
-
-	ClearCommError(this->handler, &this->errors, &this->status);
-
-	if (this->status.cbInQue > 0) {
-		if (this->status.cbInQue > buf_size) {
-			toRead = buf_size;
-		}
-		else {
-			toRead = this->status.cbInQue;
-		}
-	}
-
-	if (ReadFile(this->handler, buffer, toRead, &bytesRead, NULL)) {
-		return bytesRead;
-	}
-
-	return 0;
-}
 */
 int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
 {
@@ -147,14 +133,4 @@ bool SerialPort::writeSerialPort(char *buffer, unsigned int buf_size)
 		return false;
 	}
 	else { return true;	}
-}
-
-/**
-* Checks status of serial port connection
-*
-* @param NA
-* @returns Status of serial port connection
-*/
-bool SerialPort::isConnected() {
-	return this->connected;
 }
